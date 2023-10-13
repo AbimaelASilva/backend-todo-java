@@ -25,7 +25,6 @@ public class TaskController {
 
     @PostMapping("/")
     public ResponseEntity create(@RequestBody TaskModel taskModel, HttpServletRequest request) {
-        System.out.println("Chegou no controller" + request.getAttribute("idUser"));
 
         var idUser = getIdUser(request);
 
@@ -53,22 +52,38 @@ public class TaskController {
     }
 
     @GetMapping("/")
-    public List<TaskModel> userList(HttpServletRequest request) {
+    public List<TaskModel> findTaskByIdUser(HttpServletRequest request) {
         var idUser = getIdUser(request);
 
         return this.taskRepository.findByIdUser((UUID) idUser);
     }
 
+    // Este método esta parcialmente pronto, falta tratar o capos que estão sendo
+    // salvo como null
     @PutMapping("/{id}")
-    public TaskModel update(@RequestBody TaskModel taskModel,@PathVariable UUID id, HttpServletRequest request) {
+    public ResponseEntity update(@RequestBody TaskModel taskModel, @PathVariable UUID id, HttpServletRequest request) {
         var idUser = getIdUser(request);
-        System.out.println("IDUSER"+id);
+
+        var task = this.taskRepository.findById(id).orElse(null);
+
+        if (task == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Tarefa não encontrada!");
+        }
+        if (!task.getIdUser().equals(idUser)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Usuário não tem permissão para alterar essa tarefa!");
+        }
+
+        //Falta implementar
+        // Utils.copyNonNullProperties(taskModel, task)
 
         taskModel.setIdUser((UUID) idUser);
 
-        taskModel.setId((UUID) id);
+        taskModel.setId(id);
 
-        return this.taskRepository.save(taskModel);
+        var taskUpdated = this.taskRepository.save(taskModel);
+
+        return ResponseEntity.ok().body(taskUpdated);
     }
 
 }
