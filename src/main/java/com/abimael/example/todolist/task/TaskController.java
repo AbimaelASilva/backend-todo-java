@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -74,12 +75,10 @@ public class TaskController {
                     .body("Usuário não tem permissão para alterar essa tarefa!");
         }
 
-        //Falta implementar
+        // Falta implementar
         // Utils.copyNonNullProperties(taskModel, task)
 
-        taskModel.setIdUser((UUID) idUser);
-
-        taskModel.setId(id);
+        BeanUtils.copyProperties(taskModel, task, "id", "");
 
         var taskUpdated = this.taskRepository.save(taskModel);
 
